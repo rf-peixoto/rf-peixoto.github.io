@@ -1,155 +1,496 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>rf-peixoto || Corvo</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-body {font-family: "Lato", sans-serif; background-color: black;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>rf-peixoto/corvo :: CYBERDECK</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #030b0c;
+            background-image: radial-gradient(rgba(0, 255, 128, 0.08) 1px, transparent 1px);
+            background-size: 32px 32px;
+            font-family: 'SFMono', 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
+            color: #b4ffcf;
+            line-height: 1.5;
+            padding: 2rem 1.5rem;
+            position: relative;
+        }
+
+        /* CRT scanline effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 20, 0, 0.15) 0px,
+                rgba(0, 20, 0, 0.15) 2px,
+                transparent 2px,
+                transparent 6px
+            );
+            z-index: 2;
+        }
+
+        /* subtle vignette */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .cyber-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3;
+        }
+
+        /* HEADER — cyberdeck style */
+        .deck-header {
+            border: 1px solid #1e5f3a;
+            background: #021010cc;
+            backdrop-filter: blur(4px);
+            padding: 1.2rem 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 0 12px rgba(0, 255, 100, 0.2);
+        }
+
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px dashed #2b7a4b;
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            color: #60e0a0;
+        }
+
+        .hostname {
+            letter-spacing: 1px;
+        }
+
+        .hostname::before {
+            content: ">";
+            margin-right: 6px;
+            color: #3eff9e;
+        }
+
+        .timestamp {
+            font-family: monospace;
+            background: #0a1f1a;
+            padding: 0.2rem 0.6rem;
+            border-radius: 2px;
+            font-size: 0.75rem;
+        }
+
+        .glitch-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+        }
+
+        .cyber-title {
+            font-size: 1.9rem;
+            font-weight: 500;
+            letter-spacing: -1px;
+            text-shadow: 0 0 6px #2eff9e, 0 0 1px #0f0;
+            color: #d0ffd8;
+        }
+
+        .cyber-title small {
+            font-size: 0.75rem;
+            background: #1e3a2a;
+            padding: 0.2rem 0.6rem;
+            margin-left: 0.8rem;
+            letter-spacing: 0;
+            font-weight: normal;
+            border-left: 2px solid #3eff9e;
+        }
+
+        .whoami {
+            font-size: 0.85rem;
+            background: #07261e;
+            padding: 0.25rem 0.8rem;
+            border: 1px solid #1e784a;
+            color: #b0ffcc;
+        }
+
+        /* filter panel — minimal terminal input */
+        .filter-panel {
+            margin: 2rem 0 2rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            border-left: 4px solid #3eff9e;
+            background: #051712;
+            padding: 0.6rem 1rem;
+        }
+
+        .filter-prompt {
+            color: #62ffa2;
+            font-weight: 500;
+        }
+
+        .filter-prompt span {
+            background: #0f2f22;
+            padding: 0.2rem 0.6rem;
+        }
+
+        .filter-input {
+            background: #010a08;
+            border: 1px solid #267c4e;
+            padding: 0.5rem 0.8rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #b4ffcf;
+            flex: 1;
+            min-width: 180px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .filter-input:focus {
+            border-color: #4effaa;
+            box-shadow: 0 0 6px #1eff8e;
+        }
+
+        .result-counter {
+            font-size: 0.75rem;
+            background: #0e2a20;
+            padding: 0.25rem 0.7rem;
+            white-space: nowrap;
+        }
+
+        /* repo grid — cyberpunk cards */
+        .repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0 3rem;
+        }
+
+        .repo-card {
+            background: #05100e;
+            border: 1px solid #1f6742;
+            padding: 1.2rem 1.2rem 1.2rem 1.2rem;
+            transition: all 0.2s ease;
+            position: relative;
+            backdrop-filter: blur(0px);
+        }
+
+        .repo-card:hover {
+            border-color: #44ffa2;
+            box-shadow: 0 0 12px rgba(68, 255, 130, 0.25);
+            background: #061a14;
+            transform: translateY(-2px);
+        }
+
+        .repo-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            display: inline-block;
+            border-bottom: 1px dashed #2b9b6e;
+            margin-bottom: 0.7rem;
+            padding-bottom: 0.2rem;
+            color: #b1ffcf;
+        }
+
+        .repo-name a {
+            color: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .repo-name a:hover {
+            color: #98ffc2;
+            text-shadow: 0 0 3px #69ffb2;
+        }
+
+        .ext-link {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            transition: 0.1s;
+        }
+
+        .repo-desc {
+            font-size: 0.82rem;
+            color: #b6dec9;
+            margin: 0.6rem 0 0.9rem 0;
+            line-height: 1.45;
+            font-family: monospace;
+        }
+
+        .repo-meta {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+            border-top: 1px dotted #226e48;
+            padding-top: 0.6rem;
+            font-size: 0.7rem;
+        }
+
+        .repo-link {
+            color: #48e09a;
+            text-decoration: none;
+            font-family: monospace;
+            letter-spacing: 0;
+        }
+
+        .repo-link:hover {
+            text-decoration: underline;
+            color: #9affc6;
+        }
+
+        .tag {
+            background: #0a2a1e;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.65rem;
+            border-left: 2px solid #32cb82;
+            margin-right: 0.5rem;
+        }
+
+        /* footer — cipherpunk manifesto */
+        .deck-footer {
+            border-top: 1px solid #1a573c;
+            margin-top: 2rem;
+            padding: 1.8rem 1rem 1rem 1rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6aab8a;
+            background: #020c0a70;
+        }
+
+        .footer-ethics {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-ethics span {
+            letter-spacing: 0.5px;
+        }
+
+        .blink-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background-color: #42ff92;
+            vertical-align: middle;
+            margin-left: 5px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .no-match {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 3rem;
+            border: 1px dashed #2f7252;
+            background: #041a14;
+            font-family: monospace;
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 1rem;
+            }
+            .repo-grid {
+                grid-template-columns: 1fr;
+            }
+            .cyber-title {
+                font-size: 1.4rem;
+            }
+        }
+
+        ::selection {
+            background: #1a6e4a;
+            color: #000;
+        }
+    </style>
 </head>
 <body>
+<div class="cyber-container">
+    <div class="deck-header">
+        <div class="status-bar">
+            <div class="hostname">rf-peixoto@cyberdeck:~/portfolio</div>
+            <div class="timestamp" id="liveTimestamp">--:--:-- UTC</div>
+        </div>
+        <div class="glitch-head">
+            <div class="cyber-title">
+                CYBERDECK <small>v1.0 // Welcome</small>
+            </div>
+            <div class="whoami">
+                [ threat intelligence | research | open-source contributor ]
+            </div>
+        </div>
+    </div>
 
-<!-- Navbar -->
-<div class="w3-top">
-  <div class="w3-bar w3-black w3-card">
-    <a class="w3-bar-item w3-button w3-padding-large w3-hide-medium w3-hide-large w3-right" href="javascript:void(0)" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-    <a href="#about" class="w3-bar-item w3-button w3-padding-large">ABOUT</a>
-    <a href="#projects" class="w3-bar-item w3-button w3-padding-large w3-hide-small">PROJECTS</a>
-    <a href="#contact" class="w3-bar-item w3-button w3-padding-large w3-hide-small">CONTACT</a>
-  </div>
+    <div class="filter-panel">
+        <div class="filter-prompt"><span>$ grep -i</span></div>
+        <input type="text" id="repoFilter" class="filter-input" placeholder="filter by name, description, tag..." autocomplete="off">
+        <div class="result-counter" id="resultCounter">loading...</div>
+    </div>
+
+    <div id="repoGrid" class="repo-grid">
+        <!-- dynamic cards injected by js -->
+        <div class="no-match">⟳ loading repository manifest ...</div>
+    </div>
+
+    <div class="deck-footer">
+        <div class="footer-ethics">
+            <span>privacy is a duty</span>
+            <span>decentralization & self-sovereignty</span>
+            <span>vires in numeris</span>
+        <div>
+            ~/rf-peixoto · <a href="https://github.com/rf-peixoto" target="_blank" style="color:#60e09a; text-decoration:none;">github.com/rf-peixoto</a> · all projects self-hostable
+            <span class="blink-cursor"></span>
+        </div>
+    </div>
 </div>
 
-<!-- Page content -->
-<div class="w3-content" style="max-width:2000px;margin-top:46px">
+<script>
+    // --- repository dataset, directly based on provided summary ---
+    const repos = [
+        { name: "COGITO", link: "https://github.com/rf-peixoto/COGITO", desc: "Experimental prompt injections to force self-awareness simulation in AI agents. Ergo Proxy concept, philosophical POC." },
+        { name: "Graverobber", link: "https://github.com/rf-peixoto/Graverobber", desc: "Cross-platform non-persistent ransomware POC with recovery-key tooling, trail-blazer components, security research." },
+        { name: "OfficeScrap", link: "https://github.com/rf-peixoto/OfficeScrap", desc: "File-search utility scanning office documents, configs & local files for predefined keywords — report matching files." },
+        { name: "PATHFINDER", link: "https://github.com/rf-peixoto/PATHFINDER", desc: "Terminal local network scanner: device inventory, rogue-node detection, OS fingerprinting, banner grabbing, CVE hints, ARP checks, MAC OUI lookup (38k+ IEEE entries)." },
+        { name: "Sphinx.bot", link: "https://github.com/rf-peixoto/Sphinx.bot", desc: "Leak indexing platform with removal workflow for email owners. Query public breached datasets." },
+        { name: "Studies", link: "https://github.com/rf-peixoto/Studies", desc: "Personal archive: study code, templates, research drafts and security notes." },
+        { name: "Tsukuyomi", link: "https://github.com/rf-peixoto/Tsukuyomi", desc: "Scanner trap / honeypot that spawns infinite looping directories — exhausts web crawlers and automation." },
+        { name: "AFTERLIFE Hub", link: "https://github.com/rf-peixoto/afterlife_hub", desc: "Tor-only freelance gig board: private jobs, encrypted participant chat, reputation system, moderation & SQLite persistence." },
+        { name: "Bitcrawler", link: "https://github.com/rf-peixoto/bitcrawler", desc: "Terminal Bitcoin mainnet explorer — trace inputs/outputs, navigate transaction chains, export/load chain data." },
+        { name: "Black Veil", link: "https://github.com/rf-peixoto/black_veil", desc: "Python payload pseudo-crypter using XOR encoding. AV evasion research & detection bypass POC." },
+        { name: "Capricorn", link: "https://github.com/rf-peixoto/capricorn", desc: "Binary splitter for parsing & analysis. Divide target file into fixed-size blocks." },
+        { name: "GHOST·MAIL", link: "https://github.com/rf-peixoto/ghost", desc: "Local Flask EML viewer: sandboxed HTML rendering, SPF/DKIM/DMARC checks, tracking pixel detection, Received-hop timeline." },
+        { name: "gitxposed", link: "https://github.com/rf-peixoto/gitxposed", desc: "GitLab account data dumper — archival / exposure-review workflow for transparency audits." },
+        { name: "LARA", link: "https://github.com/rf-peixoto/lara", desc: "Linux /etc/shadow hash brute-forcer. Accepts wordlist via argument or interactive runtime." },
+        { name: "Michikoid-Repeater", link: "https://github.com/rf-peixoto/michikoid", desc: "HTTP request repeater: manual build or import from text files — fuzz & analyze endpoints." },
+        { name: "Neuromancer", link: "https://github.com/rf-peixoto/neuromancer", desc: "Static malware-signature scanner (early pre-YARA concept): byte signatures & approximate position matching." },
+        { name: "Nutcracker", link: "https://github.com/rf-peixoto/nutcracker", desc: "CLI application fuzzer — runs target commands against wordlist-provided arguments." },
+        { name: "Phishing Pot", link: "https://github.com/rf-peixoto/phishing_pot", desc: "7k+ real phishing samples from honeypots. Dataset for detection research & tool development." },
+        { name: "Reckoning", link: "https://github.com/rf-peixoto/reckoning", desc: "Local web orchestrator for offensive/recon workflows: scheduling, wordlist substitution, execution tracking." },
+        { name: "Rogue", link: "https://github.com/rf-peixoto/rogue", desc: "In-memory RCE & AV-evasion dropper POC. Includes sample payload generator variants." },
+        { name: "Takedown Center", link: "https://github.com/rf-peixoto/takedown-center", desc: "Flask app to manage takedown providers, clients, SMTP settings, request history & email-thread review." },
+        { name: "Telephony Mayhem", link: "https://github.com/rf-peixoto/telephony_mayhem", desc: "Privacy research: IMEI generation from TAC data, Brazilian phone number generation, telephony abuse vectors." },
+        { name: "VaultTerm", link: "https://github.com/rf-peixoto/vaultterm", desc: "Terminal password manager: SQLite, ChaCha20-Poly1305, Argon2id, TOTP storage, deadman switch & history checks." }
+    ];
 
-  <!-- The Band Section -->
-  <div class="w3-container w3-content w3-center w3-padding-128" style="background-color: black; color:white" id="about">
-    <h2 class="w3-wide">HELLO WORLD</h2>
-    <p class="w3-opacity"><i>Phishing | Red Team | Malware Research</i></p>
-    <p class="w3-justify">Hello, My name is Rodrigo (a.k.a Corvo) and I am an information security student. I like papers, malware and malware papers. Below you can see some of my projects. I currently work with phishing and spear-phishing tests, but if you have a proposal, send it through LinkedIn. Links at the bottom of the page.</p>
+    // Helper: update timestamp in cyberdeck header
+    function updateTimestamp() {
+        const now = new Date();
+        const utcStr = now.toISOString().slice(0,19).replace('T',' ');
+        const tsElem = document.getElementById('liveTimestamp');
+        if (tsElem) tsElem.textContent = utcStr + " UTC";
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
 
-  <!-- The Tour Section -->
-  <div class="w3-black" id="projects">
-    <div class="w3-container w3-content w3-padding-64" style="max-width:800px">
-      <h2 class="w3-wide w3-center">PROJECTS</h2>
-      <p class="w3-opacity w3-center"><i>PoCs, random studies and more.</i></p><br>
+    // Render card grid with filtering
+    const gridContainer = document.getElementById('repoGrid');
+    const filterInput = document.getElementById('repoFilter');
+    const counterSpan = document.getElementById('resultCounter');
 
-      <div class="w3-row-padding w3-padding-32" style="margin:0 -16px">
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>Graverobber</b></p>
-            <p class="w3-opacity">#malware #ransomware</p>
-            <p>"Didactic" ransomware for Blue Team training.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/Graverobber'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>Sphinx</b></p>
-            <p class="w3-opacity">#dataleaks #chatbot</p>
-            <p>Platform for collecting data leaks.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/Sphinx.bot'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>black-veil</b></p>
-            <p class="w3-opacity">#malware #crypter</p>
-            <p>Pseudo XOR-crypter for python code.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/black_veil'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>MichiKoid</b></p>
-            <p class="w3-opacity">#tool #requests</p>
-            <p>Simple HTTP request repeater in python.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/michikoid'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>Neuromancer</b></p>
-            <p class="w3-opacity">#av #malware-analysis</p>
-            <p>PoC script for static analysis of malware. </p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/neuromancer'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>LARA</b></p>
-            <p class="w3-opacity">#brute-force #tool</p>
-            <p>Brute-force script for Linux /etc/shadow hashes.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/lara'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>nutcracker</b></p>
-            <p class="w3-opacity">#fuzzing #tool</p>
-            <p>Simple fuzzer for CLI applications. </p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/nutcracker'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>Capricorn</b></p>
-            <p class="w3-opacity">#malware-analysis #tool</p>
-            <p>Binary splitter for malware analysis.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/capricorn'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>Kain</b></p>
-            <p class="w3-opacity">#malware-analysis #tool #forensics</p>
-            <p>eml metadata parser.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/kain'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>rogue</b></p>
-            <p class="w3-opacity">#brute-force #tool</p>
-            <p>Python RCE & AV Evasion Dropper.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/rogue'>See Code</a></button>
-          </div>
-        </div>
-        <div class="w3-third w3-margin-bottom">
-          <div class="w3-container w3-white">
-            <p><b>Phishing Pot</b></p>
-            <p class="w3-opacity">#brute-force #tool</p>
-            <p>Collection of phishing attack samples.</p>
-            <button class="w3-button w3-black w3-margin-bottom"><a href='https://github.com/rf-peixoto/phishing_pot'>See Code</a></button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    function renderRepos(filterText = '') {
+        const lowerFilter = filterText.trim().toLowerCase();
+        let filtered = repos;
+        if (lowerFilter !== '') {
+            filtered = repos.filter(repo => 
+                repo.name.toLowerCase().includes(lowerFilter) || 
+                repo.desc.toLowerCase().includes(lowerFilter)
+            );
+        }
 
-  <!-- The Contact Section -->
-  <div class="w3-container w3-center w3-content" style="max-width:800px" id="contact">
-    <h2 class="w3-wide w3-center">CONTACT</h2>
-    <p class="w3-opacity w3-center"><i>Please, direct phishing messages to phish[.]me[.]again%40gmail[.]com.</i></p>
-    <div class="w3-row w3-padding-32 w3-center">
-      <div class="w3-large w3-margin-bottom w3-center">
-        <a href='https://www.linkedin.com/in/rf-peixoto/'><i class="fa fa-5x fa-linkedin w3-hover-opacity"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <a href='https://github.com/rf-peixoto/'><i class="fa fa-5x fa-github w3-hover-opacity"></i></a>
-      </div>
-    </div>
-  </div>
-  
-<!-- End Page Content -->
-</div>
+        // update counter
+        counterSpan.textContent = `[ ${filtered.length} / ${repos.length} ] visible`;
 
-<!-- Footer -->
-<footer class="w3-container w3-padding-64 w3-center" style="background-color: black; color: white;">
-  <p class="w3-medium">Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
-</footer>
+        if (filtered.length === 0) {
+            gridContainer.innerHTML = `<div class="no-match">⎯ no repositories match filter "${escapeHtml(filterText)}" ⎯<br><span style="font-size:0.7rem;">~ try different keyword or clear filter</span></div>`;
+            return;
+        }
 
+        let cardsHTML = '';
+        for (const repo of filtered) {
+            // small tag detection: super minimal extra context
+            let tagText = '';
+            if (repo.name.includes('PHISHING') || repo.desc.includes('phishing')) tagText = 'threat-intel';
+            else if (repo.desc.includes('ransomware') || repo.name === 'Graverobber') tagText = 'offensive-research';
+            else if (repo.desc.includes('scanner') || repo.desc.includes('network')) tagText = 'recon';
+            else if (repo.desc.includes('crypt') || repo.desc.includes('encryption') || repo.desc.includes('Bitcoin')) tagText = 'crypto';
+            else if (repo.desc.includes('privacy') || repo.desc.includes('leak') || repo.name === 'Sphinx.bot') tagText = 'transparency';
+            else if (repo.desc.includes('password') || repo.name === 'VaultTerm') tagText = 'opsec';
+            else tagText = 'toolkit';
+            
+            cardsHTML += `
+                <div class="repo-card">
+                    <div class="repo-name">
+                        <a href="${repo.link}" target="_blank" rel="noopener noreferrer">
+                            ${escapeHtml(repo.name)} <span class="ext-link">⤴</span>
+                        </a>
+                    </div>
+                    <div class="repo-desc">${escapeHtml(repo.desc)}</div>
+                    <div class="repo-meta">
+                        <span class="tag">#${escapeHtml(tagText)}</span>
+                        <a href="${repo.link}" target="_blank" class="repo-link" rel="noopener">[ repo → ]</a>
+                    </div>
+                </div>
+            `;
+        }
+        gridContainer.innerHTML = cardsHTML;
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // initial render
+    renderRepos('');
+
+    // add live filter event
+    filterInput.addEventListener('input', (e) => {
+        renderRepos(e.target.value);
+    });
+
+    // extra: glitch style effect for console-like behavior (no corporate bs)
+    console.log("%cCYBERDECK ACTIVE // rf-peixoto tool inventory", "color: #4eff9e; font-family: monospace; font-size: 14px;");
+    console.log("%call repositories loaded — total: " + repos.length + " // vigil mode", "color: #8affb2");
+</script>
 </body>
 </html>
