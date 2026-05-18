@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>rf-peixoto/corvo :: CYBERDECK</title>
+    <title>rf-peixoto :: CYBERDECK</title>
     <style>
         * {
             margin: 0;
@@ -107,6 +107,98 @@
             justify-content: space-between;
             align-items: baseline;
             gap: 1rem;
+        }
+
+
+
+        /* light glitch effects: restrained, non-destructive */
+        .glitch-lite {
+            position: relative;
+            display: inline-block;
+            isolation: isolate;
+        }
+
+        .glitch-lite::before,
+        .glitch-lite::after {
+            content: attr(data-text);
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            mix-blend-mode: screen;
+        }
+
+        .glitch-lite::before {
+            color: rgba(255, 70, 70, 0.55);
+            transform: translateX(-1px);
+            animation: glitch-red 7s infinite steps(1, end);
+        }
+
+        .glitch-lite::after {
+            color: rgba(80, 255, 180, 0.55);
+            transform: translateX(1px);
+            animation: glitch-green 9s infinite steps(1, end);
+        }
+
+        .deck-header,
+        .repo-card,
+        .filter-panel {
+            animation: signal-breath 11s infinite linear;
+        }
+
+        .repo-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(78, 255, 170, 0.75), transparent);
+            opacity: 0;
+            animation: card-scan 8s infinite linear;
+        }
+
+        .repo-card:nth-child(3n)::before { animation-delay: 1.3s; }
+        .repo-card:nth-child(4n)::before { animation-delay: 2.1s; }
+        .repo-card:nth-child(5n)::before { animation-delay: 3.4s; }
+
+        @keyframes glitch-red {
+            0%, 89%, 100% { opacity: 0; clip-path: inset(0 0 0 0); }
+            90% { opacity: 0.75; clip-path: inset(12% 0 66% 0); }
+            91% { opacity: 0; }
+            92% { opacity: 0.55; clip-path: inset(72% 0 10% 0); }
+            93% { opacity: 0; }
+        }
+
+        @keyframes glitch-green {
+            0%, 93%, 100% { opacity: 0; clip-path: inset(0 0 0 0); }
+            94% { opacity: 0.65; clip-path: inset(42% 0 38% 0); }
+            95% { opacity: 0; }
+            96% { opacity: 0.45; clip-path: inset(5% 0 80% 0); }
+            97% { opacity: 0; }
+        }
+
+        @keyframes signal-breath {
+            0%, 100% { filter: brightness(1); }
+            48% { filter: brightness(1); }
+            49% { filter: brightness(1.08); }
+            50% { filter: brightness(0.96); }
+            51% { filter: brightness(1); }
+        }
+
+        @keyframes card-scan {
+            0%, 87%, 100% { opacity: 0; transform: translateY(0); }
+            88% { opacity: 0.45; }
+            92% { opacity: 0.1; transform: translateY(92px); }
+            93% { opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+            }
         }
 
         .cyber-title {
@@ -346,8 +438,8 @@
             <div class="timestamp" id="liveTimestamp">--:--:-- UTC</div>
         </div>
         <div class="glitch-head">
-            <div class="cyber-title">
-                CYBERDECK <small>v1.0 // Welcome</small>
+            <div class="cyber-title glitch-lite" data-text="CYBERDECK">
+                CYBERDECK <small>v1.1 // randomized manifest</small>
             </div>
             <div class="whoami">
                 [ threat intelligence | research | open-source contributor ]
@@ -371,6 +463,7 @@
             <span>privacy is a duty</span>
             <span>decentralization & self-sovereignty</span>
             <span>vires in numeris</span>
+        </div>
         <div>
             ~/rf-peixoto · <a href="https://github.com/rf-peixoto" target="_blank" style="color:#60e09a; text-decoration:none;">github.com/rf-peixoto</a> · all projects self-hostable
             <span class="blink-cursor"></span>
@@ -421,11 +514,33 @@
     const filterInput = document.getElementById('repoFilter');
     const counterSpan = document.getElementById('resultCounter');
 
+    function shuffleRepos(source) {
+        const copy = [...source];
+        if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+            for (let i = copy.length - 1; i > 0; i--) {
+                const randomBuffer = new Uint32Array(1);
+                window.crypto.getRandomValues(randomBuffer);
+                const j = randomBuffer[0] % (i + 1);
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    // Randomized once per page load. Filtering preserves this order instead of reverting to the source manifest.
+    const randomizedRepos = shuffleRepos(repos);
+
     function renderRepos(filterText = '') {
         const lowerFilter = filterText.trim().toLowerCase();
-        let filtered = repos;
+        let filtered = randomizedRepos;
         if (lowerFilter !== '') {
-            filtered = repos.filter(repo => 
+            filtered = randomizedRepos.filter(repo => 
                 repo.name.toLowerCase().includes(lowerFilter) || 
                 repo.desc.toLowerCase().includes(lowerFilter)
             );
@@ -490,7 +605,7 @@
 
     // extra: glitch style effect for console-like behavior (no corporate bs)
     console.log("%cCYBERDECK ACTIVE // rf-peixoto tool inventory", "color: #4eff9e; font-family: monospace; font-size: 14px;");
-    console.log("%call repositories loaded — total: " + repos.length + " // vigil mode", "color: #8affb2");
+    console.log("%call repositories loaded — total: " + repos.length + " // randomized order // vigil mode", "color: #8affb2");
 </script>
 </body>
 </html>
